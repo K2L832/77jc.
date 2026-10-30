@@ -32,12 +32,17 @@ client.on('messageCreate', async message => {
             return message.reply("❌ Tu n'as pas la permission d'utiliser cette commande.");
         }
 
-        await message.reply("💬 **[DMAll Sécurisé]** Envoie dans ce salon le message que tu souhaites diffuser (variables: `{mention}`, `{name}`). *Tu as 60 secondes.*");
+        await message.reply("💬 **[DMAll Sécurisé]** Envoie dans ce salon le message que tu souhaites diffuser (variables: `{mention}`, `{name}`). \n💡 *Tape simplement **annuler** pour stopper.*");
 
         const filter = m => m.author.id === OWNER_ID;
         const collector = message.channel.createMessageCollector({ filter, time: 60000, max: 1 });
 
         collector.on('collect', async m => {
+            // Si tu tapes "annuler", on arrête tout tout de suite
+            if (m.content.toLowerCase() === 'annuler') {
+                return message.channel.send("❌ **Opération DMAll annulée.**");
+            }
+
             const messageTemplate = m.content;
 
             const previewEmbed = new EmbedBuilder()

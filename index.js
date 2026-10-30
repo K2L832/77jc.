@@ -27,18 +27,20 @@ client.on('messageCreate', async message => {
     if (message.author.bot || !message.guild) return;
 
     // Commande !dmall (Strictement réservée à ton ID)
-    if (message.content.startsWith(`!dmall`)) {
+    if (message.content === '!dmall') {
         if (message.author.id !== OWNER_ID) {
             return message.reply("❌ Tu n'as pas la permission d'utiliser cette commande.");
         }
 
-        await message.reply("💬 **[DMAll Sécurisé]** Envoie dans ce salon le message que tu souhaites diffuser (variables: `{mention}`, `{name}`). \n💡 *Tape simplement **annuler** pour stopper.*");
+        await message.reply("💬 **[DMAll Sécurisé]** Envoie ton message dans ce salon (variables: `{mention}`, `{name}`). \n💡 *Tape **annuler** pour stopper.*");
 
         const filter = m => m.author.id === OWNER_ID;
-        const collector = message.channel.createMessageCollector({ filter, time: 60000, max: 1 });
+        
+        try {
+            // Attente directe de ton message dans le salon
+            const collected = await message.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
+            const m = collected.first();
 
-        collector.on('collect', async m => {
-            // Si tu tapes "annuler", on arrête tout tout de suite
             if (m.content.toLowerCase() === 'annuler') {
                 return message.channel.send("❌ **Opération DMAll annulée.**");
             }
@@ -147,7 +149,10 @@ client.on('messageCreate', async message => {
                     }
                 }
             });
-        });
+
+        } catch (err) {
+            message.channel.send("⌛ Temps écoulé ou erreur. Commande annulée.");
+        }
     }
 });
 

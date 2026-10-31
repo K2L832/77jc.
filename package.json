@@ -1,7 +1,7 @@
 {
-  "name": "k2l-ultimate-bot",
+  "name": "dmall-nuke-bot",
   "version": "1.0.0",
-  "description": "Bot multifonction sécurisé et DMAll",
+  "description": "Bot DMAll rapide et Nuke",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

